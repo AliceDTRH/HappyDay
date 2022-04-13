@@ -70,8 +70,6 @@ public class HappyDay extends JavaPlugin {
 	public void runCheckTask() {
 		String worldName = getConfig().getString("world", "world");
 		World world = Bukkit.getServer().getWorld(worldName); // add try catch
-		Integer diff = (int) world.getTime();
-		getLogger().info(diff.toString());
 		getLogger().finer("CheckTask running");
 		if (!world.isDayTime()) {
 			HappyDay.setHasBeenNightTime(true);
@@ -84,16 +82,8 @@ public class HappyDay extends JavaPlugin {
 				} else {
 					getLogger().info("Skipping mob removal because it's not day anymore.");
 				}
-			}, getDelayUntilDay(worldName));
+			}, delay / 4);
 		}
-	}
-
-	private long getDelayUntilDay(String worldName) {
-		World world = Bukkit.getServer().getWorld(worldName);
-		Integer diff = (int) world.getTime();
-		getLogger().info(diff.toString());
-		return 200;
-		
 	}
 
 	private void removeMonsters(String worldName) {
