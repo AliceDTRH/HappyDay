@@ -1,5 +1,7 @@
 package xyz.alicedtrh.happyday;
 
+import java.util.logging.Level;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -33,7 +35,7 @@ public class HappyDay extends JavaPlugin {
 	 * @return the hasBeenNightTime
 	 */
 	static Boolean getHasBeenNightTime() {
-		HappyDay.getPlugin(HappyDay.class).getLogger().warning("hasBeenNightTime get: " + _hasBeenNightTime.toString());
+		HappyDay.getPlugin(HappyDay.class).getLogger().finer("hasBeenNightTime get: " + _hasBeenNightTime.toString());
 		return _hasBeenNightTime;
 	}
 
@@ -41,7 +43,7 @@ public class HappyDay extends JavaPlugin {
 	 * @param hasBeenNightTime the hasBeenNightTime to set
 	 */
 	static void setHasBeenNightTime(Boolean hasBeenNightTime) {
-		HappyDay.getPlugin(HappyDay.class).getLogger().warning("hasBeenNightTime set: " + hasBeenNightTime.toString());
+		HappyDay.getPlugin(HappyDay.class).getLogger().finer("hasBeenNightTime set: " + hasBeenNightTime.toString());
 		HappyDay._hasBeenNightTime = hasBeenNightTime;
 	}
 
@@ -51,6 +53,10 @@ public class HappyDay extends JavaPlugin {
 		scheduler.runTaskTimer(this, () -> runCheckTask(), delay, delay);
 		
 		UpgradeableSpawners = new UpgradeableSpawnersDependency();
+		
+		if(getConfig().getBoolean("debug") == true) {
+			getLogger().setLevel(Level.FINEST);
+		}
 
 		getServer().getPluginManager().registerEvents(new TimeSkipEventListener(), this);
 
@@ -66,7 +72,7 @@ public class HappyDay extends JavaPlugin {
 		World world = Bukkit.getServer().getWorld(worldName); // add try catch
 		Integer diff = (int) world.getTime();
 		getLogger().info(diff.toString());
-		getLogger().warning("CheckTask running");
+		getLogger().finer("CheckTask running");
 		if (!world.isDayTime()) {
 			HappyDay.setHasBeenNightTime(true);
 		}
