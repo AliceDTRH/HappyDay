@@ -12,6 +12,7 @@ public class HappyDay extends JavaPlugin {
 	static final Long delay = 1200L; // 20 ticks (20tps) * 60 seconds = 1 minute
 	private static Boolean _hasBeenNightTime = false;
 	private Integer removedMobs = 0;
+	private UpgradeableSpawnersDependency UpgradeableSpawners;
 
 	/**
 	 * @return the removedMobs
@@ -49,9 +50,7 @@ public class HappyDay extends JavaPlugin {
 		BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
 		scheduler.runTaskTimer(this, () -> runCheckTask(), delay, delay);
 		
-		if(Bukkit.getServer().getPluginManager().getPlugin("UpgradeableSpawners") == null) {
-			getLogger().warning("UpgradeableSpawners not found. Support for UpgradeableSpawners is not active.");
-		}
+		UpgradeableSpawners = new UpgradeableSpawnersDependency();
 
 		getServer().getPluginManager().registerEvents(new TimeSkipEventListener(), this);
 
@@ -62,9 +61,11 @@ public class HappyDay extends JavaPlugin {
 	 * @param scheduler
 	 * @throws IllegalArgumentException
 	 */
-	public void runCheckTask() throws IllegalArgumentException {
+	public void runCheckTask() {
 		String worldName = getConfig().getString("world", "world");
 		World world = Bukkit.getServer().getWorld(worldName); // add try catch
+		Integer diff = (int) world.getTime();
+		getLogger().info(diff.toString());
 		getLogger().warning("CheckTask running");
 		if (!world.isDayTime()) {
 			HappyDay.setHasBeenNightTime(true);
@@ -77,12 +78,19 @@ public class HappyDay extends JavaPlugin {
 				} else {
 					getLogger().info("Skipping mob removal because it's not day anymore.");
 				}
-			}, delay / 4);
+			}, getDelayUntilDay(worldName));
 		}
 	}
 
+	private long getDelayUntilDay(String worldName) {
+		World world = Bukkit.getServer().getWorld(worldName);
+		Integer diff = (int) world.getTime();
+		getLogger().info(diff.toString());
+		return 200;
+		
+	}
+
 	private void removeMonsters(String worldName) {
-		// TODO Auto-generated method stub
 		getLogger().info("Removing monsters.");
 		World world = this.getServer().getWorld(worldName); // add try catch
 		world.getEntitiesByClasses(Stray.class, Zombie.class, Spider.class, Skeleton.class, Creeper.class,
@@ -105,10 +113,8 @@ public class HappyDay extends JavaPlugin {
 	 */
 	private boolean shouldRemoveMonster(Entity monster) {
 		// UpgradeAbleSpawners compatibility
-		if (Bukkit.getServer().getPluginManager().getPlugin("UpgradeableSpawners") != null) {
-			if(me.angeschossen.upgradeablespawners.api.UpgradeableSpawnersAPI.isSpawnedBySpawner(monster)) {
-				return false;
-			}
+		if(UpgradeableSpawners.isSpawnedBySpawner(monster)) {
+			return false;
 		}
 		
 		// Is the monster spawned in an unnatural way? (Mob spawner, etc.)
