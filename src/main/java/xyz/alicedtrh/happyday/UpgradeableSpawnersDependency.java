@@ -28,7 +28,7 @@ public class UpgradeableSpawnersDependency {
 				}
 			} catch (ClassNotFoundException e) {}
 			
-			if (upgradeableSpawnersLoaded) {
+			if (!upgradeableSpawnersLoaded) {
 				HappyDay.getPlugin(HappyDay.class).getLogger().warning("Unable to load UpgradableSpawnersApi. Compatibility with UpgradeableSpawners is not active.");
 			}
 		}
