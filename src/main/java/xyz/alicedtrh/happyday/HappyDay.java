@@ -17,7 +17,7 @@ public class HappyDay extends JavaPlugin {
 	private UpgradeableSpawnersDependency UpgradeableSpawners;
 
 	/**
-	 * @return the removedMobs
+	 * @return the amount of removedMobs
 	 */
 	public Integer getRemovedMobs() {
 		return removedMobs;
