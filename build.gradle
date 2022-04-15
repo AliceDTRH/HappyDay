@@ -56,10 +56,6 @@ repositories {
     maven {
         name 'papermc'
         url 'https://papermc.io/repo/repository/maven-public/'
-        content {
-            includeModule("io.papermc.paper", "paper-api")
-            includeModule("io.papermc", "paperlib")
-        }
     }
     
     maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
@@ -74,7 +70,7 @@ dependencies {
 }
 
 dependencies {
-    compileOnly 'io.papermc.paper:paper-api:1.18.1-R0.1-SNAPSHOT'
+    compileOnly 'io.papermc.paper:paper-api:1.18.2-R0.1-SNAPSHOT'
     //compileOnly 'com.github.spotbugs:spotbugs-annotations:4.5.3'
     implementation 'io.papermc:paperlib:1.0.7'
     //spotbugsPlugins 'com.h3xstream.findsecbugs:findsecbugs-plugin:1.12.0'
