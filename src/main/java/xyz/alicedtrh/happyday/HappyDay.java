@@ -1,5 +1,8 @@
 package xyz.alicedtrh.happyday;
 
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.Set;
 import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
@@ -11,124 +14,89 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
 
 public class HappyDay extends JavaPlugin {
-	static final Long delay = 1200L; // 20 ticks (20tps) * 60 seconds = 1 minute
-	private static Boolean _hasBeenNightTime = false;
-	private Integer removedMobs = 0;
-	private UpgradeableSpawnersDependency UpgradeableSpawners;
-
-	/**
-	 * @return the amount of removedMobs
-	 */
-	public Integer getRemovedMobs() {
-		return removedMobs;
-	}
-
-	public void increaseRemovedMobs() {
-		this.removedMobs++;
-	}
-
-	public void resetRemovedMobs() {
-		this.removedMobs = 0;
-	}
-
-	/**
-	 * @return the hasBeenNightTime
-	 */
-	static Boolean getHasBeenNightTime() {
-		HappyDay.getPlugin(HappyDay.class).getLogger().finer("hasBeenNightTime get: " + _hasBeenNightTime.toString());
-		return _hasBeenNightTime;
-	}
-
-	/**
-	 * @param hasBeenNightTime the hasBeenNightTime to set
-	 */
-	static void setHasBeenNightTime(Boolean hasBeenNightTime) {
-		HappyDay.getPlugin(HappyDay.class).getLogger().finer("hasBeenNightTime set: " + hasBeenNightTime.toString());
-		HappyDay._hasBeenNightTime = hasBeenNightTime;
-	}
+	private static final Set<SpawnReason> VALID_SPAWN_REASONS = Collections.unmodifiableSet(EnumSet.of(SpawnReason.NATURAL, SpawnReason.DEFAULT));
+	private HappyDayData data = HappyDayData.getInstance();
 
 	@Override
 	public void onEnable() {
 		BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
-		scheduler.runTaskTimer(this, () -> runCheckTask(), delay, delay);
-		
-		UpgradeableSpawners = new UpgradeableSpawnersDependency();
-		
-		if(getConfig().getBoolean("debug") == true) {
+		scheduler.runTaskTimer(this, this::runCheckTask, HappyDayData.DELAY, HappyDayData.DELAY);
+		/* TODO: Improve task timers.
+		    We don't want to run more than one CheckTask at once and we don't need to run it this often. */
+
+		data.setUpgradeableSpawners(new UpgradeableSpawnersDependency());
+
+		if (getConfig().getBoolean("debug")) {
+			xyz.alicedtrh.happyday.DebugLogHandler.attachDebugLogger(this);
 			getLogger().setLevel(Level.FINEST);
 		}
 
-		getServer().getPluginManager().registerEvents(new TimeSkipEventListener(), this);
+		if (data.getWorld() == null) {
+			getLogger().severe(
+					"Could not find world \"" + data.getWorldName() + "\", cannot continue without valid world.");
+			Bukkit.getPluginManager().disablePlugin(this);
+		}
+
+		getServer().getPluginManager().registerEvents(new HappyDayEventListener(), this);
 
 		saveDefaultConfig();
 	}
 
 	/**
-	 * @param scheduler
-	 * @throws IllegalArgumentException
 	 */
 	public void runCheckTask() {
-		String worldName = getConfig().getString("world", "world");
-		World world = Bukkit.getServer().getWorld(worldName); // add try catch
-		getLogger().finer("CheckTask running");
-		if (!world.isDayTime()) {
-			HappyDay.setHasBeenNightTime(true);
+		if (data.isSuspended()) {
+			// TODO: Disable the timer entirely instead of just skipping over checks.
+			getLogger().finer("Plugin is suspended.");
+			return;
 		}
-		if (world.isDayTime() && getHasBeenNightTime()) {
-			HappyDay.setHasBeenNightTime(false);
+
+		getLogger().finer("CheckTask running");
+		if (data.getWorld().isDayTime()) {
 			this.getServer().getScheduler().runTaskLater(this, () -> {
-				if (world.isDayTime()) {
-					removeMonsters(worldName);
+				if (data.getWorld().isDayTime()) {
+					removeMonsters(data.getWorld());
 				} else {
 					getLogger().info("Skipping mob removal because it's not day anymore.");
 				}
-			}, delay / 4);
+			}, HappyDayData.DELAY / 4);
 		}
 	}
 
-	private void removeMonsters(String worldName) {
-		getLogger().info("Removing monsters.");
-		World world = this.getServer().getWorld(worldName); // add try catch
+	private void removeMonsters(World world) {
+		getLogger().finer("Removing monsters.");
 		world.getEntitiesByClasses(Stray.class, Zombie.class, Spider.class, Skeleton.class, Creeper.class,
 				Drowned.class, CaveSpider.class, Husk.class, Phantom.class, Enderman.class, Witch.class, Slime.class)
 				.forEach(entity -> {
 					if (shouldRemoveMonster((LivingEntity) entity)) {
 						if (entity.isValid()) {
-							this.increaseRemovedMobs();
+							data.increaseRemovedMobs();
 							entity.remove();
 						}
 					}
 				});
-		getLogger().info("Removed "+this.getRemovedMobs()+" monsters.");
-		this.resetRemovedMobs();
+		getLogger().info("Removed " + data.getRemovedMobs() + " monsters.");
+		data.resetRemovedMobs();
 	}
 
 	/**
-	 * @param monster
+	 * @param monster The monster to check
 	 * @return boolean Whether the monster should be removed.
 	 */
 	private boolean shouldRemoveMonster(Entity monster) {
-		// UpgradeAbleSpawners compatibility
-		if(UpgradeableSpawners.isSpawnedBySpawner(monster)) {
-			return false;
-		}
-		
-		// Is the monster spawned in an unnatural way? (Mob spawner, etc.)
-		if (monster.fromMobSpawner() || (monster.getEntitySpawnReason() != SpawnReason.NATURAL
-				&& monster.getEntitySpawnReason() != SpawnReason.DEFAULT)) {
-			return false;
-		}
+		// Was the monster spawned from a UpgradeAbleSpawners spawner? (Requires UpgradeAbleSpawners)
+		if (data.getUpgradeableSpawners().isSpawnedBySpawner(monster)) return false;
+
+		// Was the monster spawned from a mob spawner?
+		if (monster.fromMobSpawner()) return false;
+
+		// Is the monster spawned in an unnatural way?
+		if (!VALID_SPAWN_REASONS.contains(monster.getEntitySpawnReason())) return false;
 
 		// Does it have a custom name?
-		if (monster.customName() != null) {
-			return false;
-		}
+		if (monster.customName() != null) return false;
 
 		// Is it currently inside a cave?
-		if (monster.getLocation().getBlock().getType() == Material.CAVE_AIR) {
-			return false;
-		}
-
-		return true;
+		return monster.getLocation().getBlock().getType() != Material.CAVE_AIR;
 	}
 }
