@@ -1,5 +1,0 @@
-name: HappyDay
-version: '2.0-SNAPSHOT'
-main: xyz.alicedtrh.happyday.HappyDay
-api-version: 1.18
-prefix: HD
