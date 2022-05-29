@@ -57,7 +57,7 @@ public class HappyDay extends JavaPlugin {
 				if (data.getWorld().isDayTime()) {
 					removeMonsters(data.getWorld());
 				} else {
-					getLogger().info("Skipping mob removal because it's not day anymore.");
+					getLogger().finer("Skipping mob removal because it's not day anymore.");
 				}
 			}, HappyDayData.DELAY / 4);
 		}
@@ -75,7 +75,7 @@ public class HappyDay extends JavaPlugin {
 						}
 					}
 				});
-		getLogger().info("Removed " + data.getRemovedMobs() + " monsters.");
+		getLogger().finer("Removed " + data.getRemovedMobs() + " monsters.");
 		data.resetRemovedMobs();
 	}
 
