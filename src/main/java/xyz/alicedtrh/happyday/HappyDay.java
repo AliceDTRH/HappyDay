@@ -1,102 +1,68 @@
 package xyz.alicedtrh.happyday;
 
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.Set;
-import java.util.logging.Level;
-
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.World;
-import org.bukkit.entity.*;
-import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitScheduler;
+import org.jetbrains.annotations.NotNull;
+import redempt.redlib.config.ConfigManager;
 
-public class HappyDay extends JavaPlugin {
-	private static final Set<SpawnReason> VALID_SPAWN_REASONS = Collections.unmodifiableSet(EnumSet.of(SpawnReason.NATURAL, SpawnReason.DEFAULT));
-	private HappyDayData data = HappyDayData.getInstance();
+import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-	@Override
-	public void onEnable() {
-		BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
-		scheduler.runTaskTimer(this, this::runCheckTask, HappyDayData.DELAY, HappyDayData.DELAY);
-		/* TODO: Improve task timers.
-		    We don't want to run more than one CheckTask at once and we don't need to run it this often. */
+import static xyz.alicedtrh.happyday.HappyDayConfig.*;
 
-		data.setUpgradeableSpawners(new UpgradeableSpawnersDependency());
+public final class HappyDay extends JavaPlugin {
+    public final static HappyDayMonsterRemover monsterRemover = new HappyDayMonsterRemover();
+    private static boolean suspended;
 
-		if (getConfig().getBoolean("debug")) {
-			xyz.alicedtrh.happyday.DebugLogHandler.attachDebugLogger(this);
-			getLogger().setLevel(Level.FINEST);
-		}
+    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings("NP_NONNULL_RETURN_VIOLATION")
+    public static @NotNull Logger log() {
+        @NotNull Logger logger = getPlugin(HappyDay.class).getLogger();
+        if(QUIET) {
+            logger.setLevel(Level.WARNING);
+        }
+        return logger;
+    }
 
-		if (data.getWorld() == null) {
-			getLogger().severe(
-					"Could not find world \"" + data.getWorldName() + "\", cannot continue without valid world.");
-			Bukkit.getPluginManager().disablePlugin(this);
-		}
+    public static boolean isSuspended() {
+        return suspended;
+    }
 
-		getServer().getPluginManager().registerEvents(new HappyDayEventListener(), this);
+    public static void setSuspended(boolean suspended) {
+        HappyDay.suspended = suspended;
 
-		saveDefaultConfig();
-	}
+        if(suspended) {
+            log().info("No players online. Suspending plugin");
+            monsterRemover.debouncer.stopAllTasks();
+        } else {
+            log().info("Players are online. Enabling plugin");
+            monsterRemover.schedule(Bukkit.getWorld(activeWorld));
+        }
+    }
 
-	/**
-	 */
-	public void runCheckTask() {
-		if (data.isSuspended()) {
-			// TODO: Disable the timer entirely instead of just skipping over checks.
-			getLogger().finer("Plugin is suspended.");
-			return;
-		}
+    @Override
+    public void onEnable() {
+        // Plugin startup logic
+        ConfigManager config = ConfigManager.create(this);
+        config.target(HappyDayConfig.class);
+        config.saveDefaults();
+        config.load();
 
-		getLogger().finer("CheckTask running");
-		if (data.getWorld().isDayTime()) {
-			this.getServer().getScheduler().runTaskLater(this, () -> {
-				if (data.getWorld().isDayTime()) {
-					removeMonsters(data.getWorld());
-				} else {
-					getLogger().info("Skipping mob removal because it's not day anymore.");
-				}
-			}, HappyDayData.DELAY / 4);
-		}
-	}
+        if(!ENABLED) {
+            log().info("Plugin disabled by configuration.");
+            getPluginLoader().disablePlugin(this);
+            return;
+        }
 
-	private void removeMonsters(World world) {
-		getLogger().finer("Removing monsters.");
-		world.getEntitiesByClasses(Stray.class, Zombie.class, Spider.class, Skeleton.class, Creeper.class,
-				Drowned.class, CaveSpider.class, Husk.class, Phantom.class, Enderman.class, Witch.class, Slime.class)
-				.forEach(entity -> {
-					if (shouldRemoveMonster((LivingEntity) entity)) {
-						if (entity.isValid()) {
-							data.increaseRemovedMobs();
-							entity.remove();
-						}
-					}
-				});
-		getLogger().info("Removed " + data.getRemovedMobs() + " monsters.");
-		data.resetRemovedMobs();
-	}
+        Objects.requireNonNull(Bukkit.getWorld(activeWorld));
 
-	/**
-	 * @param monster The monster to check
-	 * @return boolean Whether the monster should be removed.
-	 */
-	private boolean shouldRemoveMonster(Entity monster) {
-		// Was the monster spawned from a UpgradeAbleSpawners spawner? (Requires UpgradeAbleSpawners)
-		if (data.getUpgradeableSpawners().isSpawnedBySpawner(monster)) return false;
+        getServer().getPluginManager().registerEvents(new HappyDayEventHandler(), this);
 
-		// Was the monster spawned from a mob spawner?
-		if (monster.fromMobSpawner()) return false;
+        setSuspended(true);
+    }
 
-		// Is the monster spawned in an unnatural way?
-		if (!VALID_SPAWN_REASONS.contains(monster.getEntitySpawnReason())) return false;
-
-		// Does it have a custom name?
-		if (monster.customName() != null) return false;
-
-		// Is it currently inside a cave?
-		return monster.getLocation().getBlock().getType() != Material.CAVE_AIR;
-	}
+    @Override
+    public void onDisable() {
+        // Plugin shutdown logic
+    }
 }
