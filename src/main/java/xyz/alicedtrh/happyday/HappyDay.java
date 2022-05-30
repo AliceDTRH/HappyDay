@@ -5,6 +5,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import redempt.redlib.config.ConfigManager;
 
+import java.io.File;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -43,10 +44,8 @@ public final class HappyDay extends JavaPlugin {
     @Override
     public void onEnable() {
         // Plugin startup logic
-        ConfigManager config = ConfigManager.create(this);
-        config.target(HappyDayConfig.class);
-        config.saveDefaults();
-        config.load();
+
+        setupConfiguration();
 
         if(!ENABLED) {
             log().info("Plugin disabled by configuration.");
@@ -54,11 +53,26 @@ public final class HappyDay extends JavaPlugin {
             return;
         }
 
+        //Fail early if there's no valid world setup.
         Objects.requireNonNull(Bukkit.getWorld(activeWorld));
 
         getServer().getPluginManager().registerEvents(new HappyDayEventHandler(), this);
 
         setSuspended(true);
+    }
+
+    private void setupConfiguration() {
+        File oldConfig = new File(getDataFolder() + "config.yml");
+        if(oldConfig.exists() && oldConfig.canWrite()) {
+            if(oldConfig.delete()) {
+                log().warning("Deleted old config file. Please make any changes in the new configuration file if needed.");
+            }
+        }
+
+        ConfigManager config = ConfigManager.create(this);
+        config.target(HappyDayConfig.class);
+        config.saveDefaults();
+        config.load();
     }
 
     @Override
