@@ -54,5 +54,6 @@
     <orderEntry type="library" name="Maven: com.github.Redempt:RedCommands:1.5.7" level="project" />
     <orderEntry type="library" name="Maven: com.github.spotbugs:spotbugs-annotations:4.6.0" level="project" />
     <orderEntry type="library" name="Maven: com.google.code.findbugs:jsr305:3.0.2" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: com.github.angeschossen:UpgradeableSpawnersAPI:3.0.1" level="project" />
   </component>
 </module>

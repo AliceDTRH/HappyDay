@@ -3,3 +3,5 @@ version: '${project.version}'
 main: xyz.alicedtrh.happyday.HappyDay
 api-version: 1.18
 prefix: HD
+softdepend:
+  - UpgradeableSpawners

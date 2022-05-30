@@ -13,6 +13,7 @@ import static org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 public class HappyDayMonsterRemover {
     private static final Set<SpawnReason> VALID_SPAWN_REASONS = Collections.unmodifiableSet(EnumSet.of(SpawnReason.NATURAL, SpawnReason.DEFAULT));
     HappyDayDebounce debouncer = new HappyDayDebounce();
+    UpgradeableSpawnersDependency upgrSpawners = new UpgradeableSpawnersDependency();
 
     public void schedule(World world) {
         long scheduledTime = new HappyDayTimeUtils(world).getTimeUntilDay();
@@ -43,7 +44,7 @@ public class HappyDayMonsterRemover {
      */
     private boolean shouldRemoveMonster(Entity monster) {
         // Was the monster spawned from a UpgradeAbleSpawners spawner? (Requires UpgradeAbleSpawners)
-        // TODO: Implement Support for UpgradeableSpawners
+        if(upgrSpawners.loaded && upgrSpawners.isSpawnedBySpawner(monster)) return false;
 
         // Was the monster spawned from a mob spawner?
         if (monster.fromMobSpawner()) return false;
