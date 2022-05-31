@@ -24,3 +24,7 @@ jobs:
         cache: maven
     - name: Build with Maven
       run: mvn -B package --file pom.xml
+    - name: Upload a build artifact
+      with:
+        name: happyday jar
+        path: /home/runner/work/HappyDay/HappyDay/target/happyday-*-SNAPSHOT.jar
