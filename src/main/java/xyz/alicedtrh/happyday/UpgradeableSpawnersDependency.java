@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package xyz.alicedtrh.happyday;
 
@@ -13,36 +13,36 @@ import org.jetbrains.annotations.NotNull;
  *
  */
 public class UpgradeableSpawnersDependency {
-	boolean upgradeableSpawnersLoaded;
+    boolean loaded;
 
-	/**
-	 * 
-	 */
-	public UpgradeableSpawnersDependency() {
-		Plugin upgradeableSpawners = Bukkit.getServer().getPluginManager().getPlugin("UpgradeableSpawners");
-		if (upgradeableSpawners != null) {
-			try {
-				if (me.angeschossen.upgradeablespawners.api.UpgradeableSpawnersAPI.class != null) {
-					Class.forName("me.angeschossen.upgradeablespawners.api.UpgradeableSpawnersAPI");
-					upgradeableSpawnersLoaded = true;
-				}
-			} catch (ClassNotFoundException ignored) {
-				;
-			}
+    /**
+     *
+     */
+    UpgradeableSpawnersDependency() {
+        Plugin upgradeableSpawners = Bukkit.getServer().getPluginManager().getPlugin("UpgradeableSpawners");
+        if (upgradeableSpawners != null) {
+            try {
+                if (me.angeschossen.upgradeablespawners.api.UpgradeableSpawnersAPI.class != null) {
+                    Class.forName("me.angeschossen.upgradeablespawners.api.UpgradeableSpawnersAPI");
+                    loaded = true;
+                }
+            } catch (ClassNotFoundException ignored) {
+                ;
+            }
 
-			if (!upgradeableSpawnersLoaded) {
-				HappyDay.getPlugin(HappyDay.class).getLogger().warning(
-						"Unable to load UpgradableSpawnersApi. Compatibility with UpgradeableSpawners is not active.");
-			}
-		}
-	}
+            if (!loaded) {
+                HappyDay.getPlugin(HappyDay.class).getLogger().warning(
+                        "Unable to load UpgradableSpawnersApi. Compatibility with UpgradeableSpawners is not active.");
+            }
+        }
+    }
 
-	public boolean isSpawnedBySpawner(@NotNull Entity entity) {
-		if (upgradeableSpawnersLoaded) {
-			return me.angeschossen.upgradeablespawners.api.UpgradeableSpawnersAPI.isSpawnedBySpawner(entity);
-		} else {
-			return false;
-		}
-	}
+    public boolean isSpawnedBySpawner(@NotNull Entity entity) {
+        if (loaded) {
+            return me.angeschossen.upgradeablespawners.api.UpgradeableSpawnersAPI.isSpawnedBySpawner(entity);
+        } else {
+            return false;
+        }
+    }
 
 }

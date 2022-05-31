@@ -1,21 +1,7 @@
-main: xyz.alicedtrh.happyday.${NAME}
-name: ${NAME}
-version: "${VERSION}"
-api-version: "1.18"
-author: AliceDTRH
-description: A plugin that removes mobs during the daytime.
-softdepend: [UpgradeableSpawners]
-commands:
-  hd:
-    description: Base command for Happy Day
-    usage: "For a list of commands, type /hd help"
-    aliases: happyday
-permissions:
-  hd.toggle:
-    description: Toggle HappyDay on and off
-    default: op
-  hd.*:
-    description: Grants all other permissions
-    default: false
-    children:
-      example.test: true
+name: HappyDay
+version: '${project.version}'
+main: xyz.alicedtrh.happyday.HappyDay
+api-version: 1.18
+prefix: HD
+softdepend:
+  - UpgradeableSpawners
