@@ -10,12 +10,13 @@ import java.util.Set;
 
 import static org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 
-public class HappyDayMonsterRemover {
-    private static final Set<SpawnReason> VALID_SPAWN_REASONS = Collections.unmodifiableSet(EnumSet.of(SpawnReason.NATURAL, SpawnReason.DEFAULT));
+class HappyDayMonsterRemover {
+    private static final Set<SpawnReason> VALID_SPAWN_REASONS = Collections.unmodifiableSet(EnumSet.of(SpawnReason.NATURAL, SpawnReason.DEFAULT, SpawnReason.VILLAGE_DEFENSE));
     HappyDayDebounce debouncer = new HappyDayDebounce();
-    UpgradeableSpawnersDependency upgrSpawners = new UpgradeableSpawnersDependency();
+    private final UpgradeableSpawnersDependency upgrSpawners = new UpgradeableSpawnersDependency();
 
-    public void schedule(World world) {
+    //Debounce before calling
+    void schedule(World world) {
         long scheduledTime = new HappyDayTimeUtils(world).getTimeUntilDay();
         if(new HappyDayTimeUtils(world).isDayTime()) {
             removeMonsters(world); //Always remove monsters after changing time to daytime.
@@ -23,7 +24,7 @@ public class HappyDayMonsterRemover {
         debouncer.debounce(() -> removeMonsters(world), scheduledTime);
     }
 
-    public void removeMonsters(World world) {
+    private void removeMonsters(World world) {
         if(HappyDay.isSuspended()) { return; }
         int removedMobs = 0;
         for (Entity entity : world.getEntitiesByClasses(Stray.class, Zombie.class, Spider.class, Skeleton.class, Creeper.class,

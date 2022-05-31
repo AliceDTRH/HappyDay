@@ -1,6 +1,7 @@
 package xyz.alicedtrh.happyday;
 
 import org.bukkit.Bukkit;
+import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import redempt.redlib.config.ConfigManager;
@@ -13,11 +14,11 @@ import java.util.logging.Logger;
 import static xyz.alicedtrh.happyday.HappyDayConfig.*;
 
 public final class HappyDay extends JavaPlugin {
-    public final static HappyDayMonsterRemover monsterRemover = new HappyDayMonsterRemover();
-    private static boolean suspended;
+    final static HappyDayMonsterRemover monsterRemover = new HappyDayMonsterRemover();
+    private static boolean suspended = false;
 
     @edu.umd.cs.findbugs.annotations.SuppressFBWarnings("NP_NONNULL_RETURN_VIOLATION")
-    public static @NotNull Logger log() {
+    static @NotNull Logger log() {
         @NotNull Logger logger = getPlugin(HappyDay.class).getLogger();
         if(QUIET) {
             logger.setLevel(Level.WARNING);
@@ -30,6 +31,10 @@ public final class HappyDay extends JavaPlugin {
     }
 
     public static void setSuspended(boolean suspended) {
+        if(!EMPTY_SUSPEND) {
+            suspended = false;
+        }
+
         HappyDay.suspended = suspended;
 
         if(suspended) {
@@ -37,14 +42,13 @@ public final class HappyDay extends JavaPlugin {
             monsterRemover.debouncer.stopAllTasks();
         } else {
             log().info("Players are online. Enabling plugin");
-            monsterRemover.schedule(Bukkit.getWorld(activeWorld));
+            monsterRemover.schedule(Bukkit.getWorld(WORLD));
         }
     }
 
     @Override
     public void onEnable() {
         // Plugin startup logic
-
         setupConfiguration();
 
         if(!ENABLED) {
@@ -54,7 +58,7 @@ public final class HappyDay extends JavaPlugin {
         }
 
         //Fail early if there's no valid world setup.
-        Objects.requireNonNull(Bukkit.getWorld(activeWorld));
+        Objects.requireNonNull(Bukkit.getWorld(WORLD));
 
         getServer().getPluginManager().registerEvents(new HappyDayEventHandler(), this);
 

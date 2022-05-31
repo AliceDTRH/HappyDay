@@ -18,7 +18,7 @@ public class UpgradeableSpawnersDependency {
     /**
      *
      */
-    public UpgradeableSpawnersDependency() {
+    UpgradeableSpawnersDependency() {
         Plugin upgradeableSpawners = Bukkit.getServer().getPluginManager().getPlugin("UpgradeableSpawners");
         if (upgradeableSpawners != null) {
             try {
