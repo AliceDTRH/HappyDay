@@ -1,5 +1,7 @@
 package xyz.alicedtrh.happyday;
 
+import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import redempt.redlib.config.annotations.Comment;
 import redempt.redlib.config.annotations.ConfigMappable;
@@ -29,8 +31,8 @@ public class HappyDayConfig {
     @Comment("When false, disables the entire mod. (default: true)")
     public static boolean ENABLED = true;
 
-    @Comment("The world that HappyDay is active on. (Default: world)")
-    public static String WORLD = "world";
+    @Comment("The world that HappyDay is active on.")
+    public static World WORLD = Bukkit.getWorlds().get(0);
 
     @Comment("Times used internally by the mod to figure out when night and day are")
     @Comment("This is an advanced option, don't touch this unless you know what you're doing.")

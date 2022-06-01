@@ -18,12 +18,12 @@ public final class HappyDayEventHandler implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onTimeSkipEvent(TimeSkipEvent event) {
-        debouncer.debounce(() -> HappyDay.monsterRemover.schedule(Bukkit.getWorld(WORLD)), 20);
+        debouncer.debounce(() -> HappyDay.monsterRemover.schedule(WORLD), 20);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerQuitEvent(PlayerQuitEvent event) {
-        World world = Objects.requireNonNull(Bukkit.getWorld(WORLD));
+        World world = Objects.requireNonNull(WORLD);
         // The player hasn't quit at this point so the player-count should be 1 if this is the last person
         if(world.getPlayerCount() <= 1) {
             HappyDay.setSuspended(true);

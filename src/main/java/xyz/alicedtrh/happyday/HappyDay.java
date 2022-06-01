@@ -1,6 +1,7 @@
 package xyz.alicedtrh.happyday;
 
 import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
@@ -42,7 +43,7 @@ public final class HappyDay extends JavaPlugin {
             monsterRemover.debouncer.stopAllTasks();
         } else {
             log().info("Players are online. Enabling plugin");
-            monsterRemover.schedule(Bukkit.getWorld(WORLD));
+            monsterRemover.schedule(WORLD);
         }
     }
 
@@ -58,7 +59,13 @@ public final class HappyDay extends JavaPlugin {
         }
 
         //Fail early if there's no valid world setup.
-        Objects.requireNonNull(Bukkit.getWorld(WORLD));
+        try {
+            Objects.requireNonNull(WORLD);
+        } catch (NullPointerException e) {
+            log().severe("Couldn't find a valid world! Make sure your configuration is correct.");
+            throw new InvalidWorldException("Couldn't find a valid world! Make sure your configuration is correct.", e);
+        }
+
 
         getServer().getPluginManager().registerEvents(new HappyDayEventHandler(), this);
 
@@ -66,14 +73,8 @@ public final class HappyDay extends JavaPlugin {
     }
 
     private void setupConfiguration() {
-        File oldConfig = new File(getDataFolder() + "config.yml");
-        if(oldConfig.exists() && oldConfig.canWrite()) {
-            if(oldConfig.delete()) {
-                log().warning("Deleted old config file. Please make any changes in the new configuration file if needed.");
-            }
-        }
-
         ConfigManager config = ConfigManager.create(this);
+        config.addConverter(World.class, Bukkit::getWorld, World::getName);
         config.target(HappyDayConfig.class);
         config.saveDefaults();
         config.load();
