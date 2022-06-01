@@ -1,2 +1,2 @@
 # HappyDay
-A Paper Minecraft plugin that removed monsters when the day starts.
+A Paper Minecraft plugin that removes monsters when the day starts.
