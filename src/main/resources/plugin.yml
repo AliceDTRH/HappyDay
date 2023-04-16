@@ -1,7 +1,7 @@
 name: HappyDay
 version: '${project.version}'
 main: xyz.alicedtrh.happyday.HappyDay
-api-version: 1.18
+api-version: 1.19
 prefix: HD
 softdepend:
   - UpgradeableSpawners

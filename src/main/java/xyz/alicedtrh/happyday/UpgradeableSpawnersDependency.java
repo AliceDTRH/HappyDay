@@ -39,7 +39,7 @@ public class UpgradeableSpawnersDependency {
 
     public boolean isSpawnedBySpawner(@NotNull Entity entity) {
         if (loaded) {
-            return me.angeschossen.upgradeablespawners.api.UpgradeableSpawnersAPI.isSpawnedBySpawner(entity);
+            return me.angeschossen.upgradeablespawners.api.UpgradeableSpawnersAPI.getInstance().isSpawnedBySpawner(entity);
         } else {
             return false;
         }
